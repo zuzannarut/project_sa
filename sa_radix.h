@@ -11,10 +11,10 @@ void sort_interval(std::vector<int>& p, std::vector<int>& c, int n, int h, int a
         return;
     std::vector<int> cn(b - a);
     cn[0] = c[p[a]];
-    int poz = c[0];
+    int poz = cn[0];
     //std::cout << a << " " << b << "\n";
     sort(p.begin() + a, p.begin() + b,
-         [&] (const int key1, const int key2) {return c[(key1 + (1 << h)) % n] < c[(key2 + (1 << h)) % n];});
+         [&] (const int key1, const int key2) {return std::make_pair(c[key1], c[(key1 + (1 << h)) % n]) < std::make_pair(c[key2], c[(key2 + (1 << h)) % n]);});
     for (int i = a + 1; i < b; i++) {
         poz++;
         std::pair<int, int> p1 = {c[p[i]], c[(p[i] + (1<<h)) % n]};
@@ -50,9 +50,11 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
     }
 
     // assigning classes to elements of s
+    int poz = 0;
     for (int i = 1; i < n; i++) {
+        poz++;
         if (s[p[i]] != s[p[i - 1]])
-            c[p[i]] = c[p[i - 1]] + 1;
+            c[p[i]] = poz;
         else
             c[p[i]] = c[p[i - 1]];
     }
@@ -60,15 +62,16 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
     // doubling the length by which the subtrings are sorted
     for (int h = 0; (1<<h) < n; h++) {
         // radix sorting substrings of length 2^h
-
         if (10 * diff >  9 * n) {
             int prev = 0;
-            for (int j = 1; j < n; j++) {
+            int j;
+            for (j = 1; j < n; j++) {
                 if (c[p[j]] != c[p[j - 1]]) {
                     sort_interval(p, c, n, h, prev, j);
                     prev = j;
                 }
             }
+            sort_interval(p, c, n, h, prev, j);
         }
         else {
             diff = 0;
@@ -111,8 +114,8 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
         }
         // if the number of classes is n, then all suffices are already different based on substrings of length 2^h
         // and we can terminate the algorithm
-        std::cout << diff << "\n";
-        std::cout << c[p[n - 1]] << "\n";
+        //std::cout << diff << "\n";
+        //std::cout << c[p[n - 1]] << "\n";
         //if (c[p[n - 1]] == n - 1)
         //    break;
 
@@ -192,7 +195,6 @@ std::vector<int> suffix_array(const std::vector<int>& s) {
 
         // if the number of classes is n, then all suffices are already different based on substrings of length 2^h
         // and we can terminate the algorithm
-        std::cout << c[p[n - 1]] << "\n";
         if (c[p[n - 1]] == n - 1)
             break;
 

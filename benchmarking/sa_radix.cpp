@@ -24,9 +24,14 @@ int main(int argc, char** argv) {
 
     clock_t start, finish;
     start = clock();
-    auto sa_arr = suffix_array_smooth(sequence);
+    auto sa_arr_1 = suffix_array_smooth(sequence);
+    //auto sa_arr_2 = suffix_array(sequence);
     finish = clock();
     fprintf(stderr, "%.6f sec\n", (double)(finish - start) / (double)CLOCKS_PER_SEC);
 
     return 0;
 }
+
+// 0 1 2 3 4 5 6 7 8 9 10 11
+// a b c b c b a $
+
