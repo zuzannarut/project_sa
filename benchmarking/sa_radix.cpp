@@ -25,10 +25,17 @@ int main(int argc, char** argv) {
     clock_t start, finish;
     start = clock();
     auto sa_arr_1 = suffix_array_smooth(sequence);
-    //auto sa_arr_2 = suffix_array(sequence);
     finish = clock();
     fprintf(stderr, "%.6f sec\n", (double)(finish - start) / (double)CLOCKS_PER_SEC);
-
+    start = clock();
+    auto sa_arr_2 = suffix_array(sequence);
+    finish = clock();
+    fprintf(stderr, "%.6f sec\n", (double)(finish - start) / (double)CLOCKS_PER_SEC);
+    for (int i = 0; i < sa_arr_1.size(); i++)
+        if (sa_arr_1[i] != sa_arr_2[i]) {
+            cout << "FALSE\n";
+            return 0;
+        }
     return 0;
 }
 

@@ -63,15 +63,21 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
     for (int h = 0; (1<<h) < n; h++) {
         // radix sorting substrings of length 2^h
         if (10 * diff >  9 * n) {
-            int prev = 0;
-            int j;
+            int j, prev = 0;
+            bool cnt = false;
             for (j = 1; j < n; j++) {
                 if (c[p[j]] != c[p[j - 1]]) {
+                    if (j - prev > 1)
+                        cnt = true;
                     sort_interval(p, c, n, h, prev, j);
                     prev = j;
                 }
             }
+            if (j - prev > 1)
+                cnt = true;
             sort_interval(p, c, n, h, prev, j);
+            if (!cnt)
+                break;
         }
         else {
             diff = 0;
@@ -195,6 +201,7 @@ std::vector<int> suffix_array(const std::vector<int>& s) {
 
         // if the number of classes is n, then all suffices are already different based on substrings of length 2^h
         // and we can terminate the algorithm
+        //std::cout << c[p[n - 1]] << "\n";
         if (c[p[n - 1]] == n - 1)
             break;
 
