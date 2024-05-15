@@ -28,6 +28,7 @@ void sort_interval(std::vector<int>& p, std::vector<int>& c, int n, int h, int a
         c[p[i]] = cn[i - a];
 }
 
+// a function that return the suffix array of sequence s, tested and the most optimized
 std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
     int n = s.size();
 
@@ -120,7 +121,7 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
 }
 
 // builds a suffix array of a sequence of ints, the last element of s must be the smallest
-// the algorithms is based on the folklore doubling approach but contains some improvements
+// the algorithms is based on the folklore doubling approach but contains a few original improvements
 // comment: for building a suffix array of a string, cast the string to a sequence of ints first
 // algorithm description: https://cp-algorithms.com/string/suffix-array.html
 
@@ -199,30 +200,46 @@ std::vector<int> suffix_array(const std::vector<int>& s) {
     return p;
 }
 
-// code based on https://cp-algorithms.com/string/suffix-array.html
-// s - the initial sequence on from which the suffix array has been constructed
-// sa - the suffix array of s
-std::vector<int> lcp_construction(const std::vector<int>& s, const std::vector<int>& sa) {
-    int n = s.size();
-    std::vector<int> rank(n, 0);
-    for (int i = 0; i < n; i++)
-        rank[sa[i]] = i;
-
-    int k = 0;
-    std::vector<int> lcp(n-1, 0);
-    for (int i = 0; i < n; i++) {
-        if (rank[i] == n - 1) {
-            k = 0;
-            continue;
-        }
-        int j = sa[rank[i] + 1];
-        while (i + k < n && j + k < n && s[i+k] == s[j+k])
-            k++;
-        lcp[rank[i]] = k;
-        if (k)
-            k--;
+bool compare_suffix_query(const std::vector<int>& sequence, int pos,
+                          const std::vector<int>& query, int start) {
+    for (int i = start; i < (int)query.size(); i++) {
+        if (sequence[pos + i] < query[i])
+            return true;
+        if (sequence[pos + i] > query[i])
+            return false;
     }
-    return lcp;
+    return true;
 }
+
+int binary_search_naive(const std::vector<int>& sequence, const std::vector<int>& sa,
+                        const std::vector<int>& query, int left, int right)
+{
+    long long cmp_count = 0;
+    while (left + 1 < right) {
+        int mid = (left + right) / 2;
+        // comparing sequence and query;
+        if (compare_suffix_query(sequence, sa[mid], query, 0)) //suffix is lower or equal
+            left = mid;
+        else
+            right = mid;
+    }
+    return right;
+}
+
+// return an interval of indices in the suffix array in which the query_sequence appears. If the returned interval
+// is [a, b) it means that the query sequence appears on positions from a to b-1 inclusive.
+// If b == a then there is no appearances.
+std::pair<int, int> answ_query(const std::vector<int>& sequence, const std::vector<int>& sa, const std::vector<int>& query_sequence) {
+    auto lower_bound_str = query_sequence;
+    lower_bound_str.push_back(-1);
+    auto upper_bound_str = query_sequence;
+    upper_bound_str.push_back(INT32_MAX);
+    auto lw_ans = binary_search_naive(sequence, sa, lower_bound_str,
+                                      0, (int)sa.size());
+    auto up_ans = binary_search_naive(sequence, sa, upper_bound_str,
+                                      0, (int)sa.size());
+    return {lw_ans, up_ans};
+}
+
 
 #endif //SA_RADIX_H
