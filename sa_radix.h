@@ -5,16 +5,17 @@
 #include <vector>
 
 
-
+// a helper function sorting suffixes within one class
 void sort_interval(std::vector<int>& p, std::vector<int>& c, int n, int h, int a, int b) {
     if (b - a == 1)
         return;
     std::vector<int> cn(b - a);
     cn[0] = c[p[a]];
     int poz = cn[0];
-    //std::cout << a << " " << b << "\n";
     sort(p.begin() + a, p.begin() + b,
-         [&] (const int key1, const int key2) {return std::make_pair(c[key1], c[(key1 + (1 << h)) % n]) < std::make_pair(c[key2], c[(key2 + (1 << h)) % n]);});
+         [&] (const int key1, const int key2) {
+            return std::make_pair(c[key1], c[(key1 + (1 << h)) % n]) < std::make_pair(c[key2], c[(key2 + (1 << h)) % n]);
+         });
     for (int i = a + 1; i < b; i++) {
         poz++;
         std::pair<int, int> p1 = {c[p[i]], c[(p[i] + (1<<h)) % n]};
@@ -28,7 +29,10 @@ void sort_interval(std::vector<int>& p, std::vector<int>& c, int n, int h, int a
         c[p[i]] = cn[i - a];
 }
 
-// a function that return the suffix array of sequence s, tested and the most optimized
+// the most optimized function that returns the suffix array of a sequence s
+// optimizations: 1) early stopping mechanism that terminates the algorithm once all classes are different
+//                2) if the number of different classes is large, the algorithm switch to sorting just the
+//                   elements within the same class until all classes are different
 std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
     int n = s.size();
 
@@ -61,7 +65,7 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
     int diff = 0;
     // doubling the length by which the subtrings are sorted
     for (int h = 0; (1<<h) < n; h++) {
-        // radix sorting substrings of length 2^h
+        // switching to sorting only within classes if the number of different classes is large
         if (10 * diff >  9 * n) {
             int j, prev = 0;
             bool cnt = false;
@@ -79,7 +83,7 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
             if (!cnt)
                 break;
         }
-        else {
+        else { // using standard radix sort approach to sort suffixes based on the prefixes of length 2^h
             diff = 0;
 
             for (int i = 0; i < n; i++)
@@ -118,13 +122,6 @@ std::vector<int> suffix_array_smooth(const std::vector<int>& s) {
                     c[p[i]] = c[p[i - 1]];
             }
         }
-        // if the number of classes is n, then all suffices are already different based on substrings of length 2^h
-        // and we can terminate the algorithm
-        //std::cout << diff << "\n";
-        //std::cout << c[p[n - 1]] << "\n";
-        //if (c[p[n - 1]] == n - 1)
-        //    break;
-
     }
     return p;
 }
